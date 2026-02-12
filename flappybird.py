@@ -57,6 +57,7 @@ velocity_y = 0
 gravity = 0.4
 score = 0
 game_over = False
+game_started = False
 particles = []
 
 def spawn_particles(x, y, amount=10):
@@ -152,6 +153,7 @@ while True:
             CreatePipes()
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_SPACE, pygame.K_UP, pygame.K_w):
+                game_started = True
                 velocity_y -= 6
                 
             
@@ -163,13 +165,14 @@ while True:
                     pipes.clear()
                     particles.clear()
                     game_over= False
+                    game_started = False
                     score = 0
 
 
-    if not game_over:
+    if not game_over and game_started:
         move()
-        draw()
-        pygame.display.update()
-        clock.tick(60)
+    draw()
+    pygame.display.update()
+    clock.tick(60)
 
 
