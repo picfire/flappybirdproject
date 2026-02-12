@@ -26,6 +26,16 @@ class Pipe(pygame.Rect):
         self.img = img
         self.passed = False
 
+# particle class
+class Particle:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.vx = random.uniform(-1.5, 1.5)
+        self.vy = random.uniform(-2.5, -0.5)
+        self.life = random.randint(18, 28)
+        self.radius = random.randint(2, 3)
+
 #images
 flappy = pygame.image.load("flappybird.png")
 flappy = pygame.transform.scale(flappy, (birdwidth,birdheight))
@@ -47,6 +57,11 @@ velocity_y = 0
 gravity = 0.4
 score = 0
 game_over = False
+particles = []
+
+def spawn_particles(x, y, amount=10):
+    for _ in range(amount):
+        particles.append(Particle(x, y))
 
 def draw():
     window.blit(blacbg,(0,-420))
@@ -55,7 +70,12 @@ def draw():
 
     for pipe in pipes:
         window.blit(pipe.img, pipe)
+
+    for p in particles:
+        pygame.draw.circle(window, (255, 255, 120), (int(p.x), int(p.y)), p.radius)
     text_str = str(int(score))
+
+        
 
     if game_over:
         text_str = "Game Over: " + text_str
@@ -70,6 +90,14 @@ def move():
     bird.y += velocity_y
     bird.y = max(bird.y, 0)
 
+    for p in particles[:]:
+        p.vy += 0.05
+        p.x += p.vx
+        p.y += p.vy
+        p.life -= 1
+        if p.life <= 0:
+            particles.remove(p)
+
     if bird.y > height:
         game_over = True
         return
@@ -78,6 +106,8 @@ def move():
         if not pipe.passed and bird.x > pipe.x+ pipe.width:
             score += 0.5 # 0.5 because there are two pipes top and bottom so total is 1
             pipe.passed = True
+            if score.is_integer():
+                spawn_particles(bird.centerx, bird.centery, amount=12)
         if bird.colliderect(pipe):
             game_over = True
             return
@@ -123,17 +153,20 @@ while True:
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_SPACE, pygame.K_UP, pygame.K_w):
                 velocity_y -= 6
+                
+            
 
                 #reset
 
                 if game_over:
                     bird.y = birdy
                     pipes.clear()
+                    particles.clear()
                     game_over= False
                     score = 0
 
 
-    if not game_over: 
+    if not game_over:
         move()
         draw()
         pygame.display.update()
